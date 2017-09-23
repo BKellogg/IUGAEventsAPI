@@ -24,17 +24,10 @@ type HandlerContext struct {
 
 func main() {
 
-	// if the server should serve https
-	// will be set to false if either the
-	// tls key or tls cert files are not found
-	shouldUseTLS := true
-
 	// Get the environment variables needed
 	// to run
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
-	tlsKey := os.Getenv("TLSKEY")
-	tlsCert := os.Getenv("TLSCERT")
 	redisAddr := os.Getenv("REDISADDR")
 	fbKey := os.Getenv("FBKEY")
 
@@ -44,16 +37,6 @@ func main() {
 	}
 	if len(fbKey) == 0 {
 		log.Fatal("FBKEY not found, exiting...")
-	}
-
-	// get the tls cert and key, if not found do not use TLS
-	if len(tlsKey) == 0 {
-		fmt.Println("env TLSKEY not found, server will use not https...")
-		shouldUseTLS = false
-	}
-	if len(tlsCert) == 0 {
-		fmt.Println("env TLSCERT not found, server will use not https...")
-		shouldUseTLS = false
 	}
 
 	// Fallback to defaults if the environment variables aren't set
@@ -78,15 +61,9 @@ func main() {
 		fbKey:       fbKey,
 	}
 
-	http.HandleFunc("/get", hctx.FeedHandler)
-
-	if shouldUseTLS {
-		fmt.Printf("listening on https://%s...\n", addr)
-		log.Fatal(http.ListenAndServeTLS(addr, tlsCert, tlsKey, nil))
-	} else {
-		fmt.Printf("listening on %s...\n", addr)
-		log.Fatal(http.ListenAndServe(addr, nil))
-	}
+	http.HandleFunc("/events", hctx.FeedHandler)
+	fmt.Printf("listening on %s...\n", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 // FeedHandler makes a request to Facebook's Graph API
